@@ -5,6 +5,9 @@
 /.next
 /out
 
+# typescript build info
+*.tsbuildinfo
+
 # env
 .env*
 
