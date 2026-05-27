@@ -20,8 +20,8 @@ Plataforma de gestión de cobranza B2B para pymes peruanas. Esta demo es el entr
 
 ## Acciones de cobro
 
-- **WhatsApp**: enlace `wa.me` con el mensaje de recordatorio pre-cargado (funciona desde el celular).
-- **Yape**: cobro simulado con QR ilustrativo y monto (en producción será un cobro real).
+- **WhatsApp**: enlace `wa.me` con el mensaje de recordatorio pre-cargado, que **incluye el número de Yape del negocio** para que el cliente pague directo desde el chat (funciona de verdad desde el celular).
+- **Sprint 2**: adjuntar el **QR de Yape** (subido por el dueño) al mensaje y separar el ingreso del negocio del personal con un Yape dedicado.
 
 ## Desarrollo
 
