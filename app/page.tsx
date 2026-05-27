@@ -1,17 +1,23 @@
+"use client";
+
 import Link from "next/link";
-import { calcularKpis, agingPorTramo, resumenClientes, soles, ETIQUETA_TRAMO } from "@/lib/calc";
+import { useStore } from "@/lib/store";
+import { calcularKpis, agingPorTramo, resumenClientes, resumenCaja, soles, ETIQUETA_TRAMO } from "@/lib/calc";
 
 export default function DashboardPage() {
-  const kpis = calcularKpis();
-  const aging = agingPorTramo();
-  const topDeudores = resumenClientes().slice(0, 5);
+  const { clientes, facturas, movimientos, negocio } = useStore();
+
+  const kpis = calcularKpis(facturas, negocio.hoy);
+  const aging = agingPorTramo(facturas, negocio.hoy);
+  const topDeudores = resumenClientes(clientes, facturas, negocio.hoy).slice(0, 5);
+  const caja = resumenCaja(movimientos);
   const maxMonto = Math.max(...aging.map((a) => a.monto), 1);
 
   const tarjetas = [
     { label: "Total por cobrar", valor: kpis.totalPorCobrar, color: "text-slate-900", sub: `${kpis.clientesConDeuda} clientes con deuda` },
     { label: "Vencido", valor: kpis.vencido, color: "text-red-600", sub: "Plata que ya deberías tener" },
     { label: "Por vencer", valor: kpis.porVencer, color: "text-amber-600", sub: "Próximos vencimientos" },
-    { label: "Cobrado este mes", valor: kpis.cobradoEsteMes, color: "text-emerald-600", sub: "Pagos recibidos" },
+    { label: "Saldo en caja", valor: caja.saldo, color: caja.saldo >= 0 ? "text-emerald-600" : "text-red-600", sub: "Ingresos − egresos" },
   ];
 
   const colorTramo: Record<string, string> = {
@@ -72,26 +78,30 @@ export default function DashboardPage() {
               Ver todos →
             </Link>
           </div>
-          <div className="mt-4 divide-y divide-slate-100">
-            {topDeudores.map((r) => (
-              <Link
-                key={r.cliente.id}
-                href={`/clientes/${r.cliente.id}`}
-                className="flex items-center justify-between py-3 transition hover:bg-slate-50"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-slate-800">{r.cliente.razonSocial}</div>
-                  <div className="text-xs text-slate-400">
-                    {r.facturasPendientes} factura(s)
-                    {r.maxAtraso > 0 ? ` · vencida hace ${r.maxAtraso} día(s)` : " · al día"}
+          {topDeudores.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-400">Nadie te debe por ahora. 🎉</p>
+          ) : (
+            <div className="mt-4 divide-y divide-slate-100">
+              {topDeudores.map((r) => (
+                <Link
+                  key={r.cliente.id}
+                  href={`/clientes/${r.cliente.id}`}
+                  className="flex items-center justify-between py-3 transition hover:bg-slate-50"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-slate-800">{r.cliente.razonSocial}</div>
+                    <div className="text-xs text-slate-400">
+                      {r.facturasPendientes} factura(s)
+                      {r.maxAtraso > 0 ? ` · vencida hace ${r.maxAtraso} día(s)` : " · al día"}
+                    </div>
                   </div>
-                </div>
-                <div className={`shrink-0 text-sm font-semibold ${r.maxAtraso > 0 ? "text-red-600" : "text-slate-700"}`}>
-                  {soles(r.totalPendiente)}
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className={`shrink-0 text-sm font-semibold ${r.maxAtraso > 0 ? "text-red-600" : "text-slate-700"}`}>
+                    {soles(r.totalPendiente)}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

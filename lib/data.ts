@@ -4,12 +4,19 @@
 // crédito a otros negocios (bodegas, minimarkets, ferreterías, etc.).
 // ---------------------------------------------------------------------------
 
-export const NEGOCIO = {
+export interface Negocio {
+  razonSocial: string;
+  ruc: string;
+  hoy: string; // "hoy" fijo para que los KPIs/aging sean estables en la demo
+  yapeNombre: string;
+  yapeNumero: string;
+  yapeQrDataUrl?: string; // QR de Yape subido por el dueño (HU-13), opcional
+}
+
+export const NEGOCIO: Negocio = {
   razonSocial: "Distribuidora San Martín S.A.C.",
   ruc: "20512345678",
-  // Para que los KPIs sean estables en la demo, "hoy" es una fecha fija.
   hoy: "2026-05-26",
-  // Yape del negocio (para los links/QR de cobro simulados).
   yapeNombre: "Distribuidora San Martín",
   yapeNumero: "987 654 321",
 };
@@ -80,6 +87,39 @@ export const facturas: Factura[] = [
   { id: "F001-00275", clienteId: "c6", monto: 2300.0, fechaEmision: "2026-03-22", fechaVencimiento: "2026-04-21", estado: "pagada", fechaPago: "2026-05-14" },
   { id: "F001-00288", clienteId: "c5", monto: 980.0, fechaEmision: "2026-04-05", fechaVencimiento: "2026-05-05", estado: "pagada", fechaPago: "2026-05-20" },
   { id: "F001-00305", clienteId: "c8", monto: 1760.0, fechaEmision: "2026-04-30", fechaVencimiento: "2026-05-15", estado: "pagada", fechaPago: "2026-05-22" },
+];
+
+// ---------------------------------------------------------------------------
+// Caja del negocio: ingresos y egresos (EP-06). En la demo se guardan en el
+// navegador (localStorage) a través de lib/store.tsx.
+// ---------------------------------------------------------------------------
+
+export type TipoMovimiento = "ingreso" | "egreso";
+
+export interface Movimiento {
+  id: string;
+  tipo: TipoMovimiento;
+  concepto: string;
+  monto: number; // en soles
+  fecha: string; // YYYY-MM-DD
+  categoria: string;
+  // Si el ingreso vino de cobrar una factura por Yape del negocio:
+  facturaId?: string;
+  origen?: "yape-negocio" | "otro";
+}
+
+export const CATEGORIAS_INGRESO = ["Cobranza", "Venta", "Otro"] as const;
+export const CATEGORIAS_EGRESO = ["Proveedores", "Servicios", "Planilla", "Alquiler", "Otros"] as const;
+
+// Movimientos semilla para que la caja no arranque vacía.
+export const movimientos: Movimiento[] = [
+  { id: "m1", tipo: "egreso", concepto: "Alquiler del local", monto: 1200.0, fecha: "2026-05-01", categoria: "Alquiler" },
+  { id: "m2", tipo: "egreso", concepto: "Compra a proveedor (mercadería)", monto: 3000.0, fecha: "2026-05-05", categoria: "Proveedores" },
+  { id: "m3", tipo: "ingreso", concepto: "Cobro factura F001-00260", monto: 1450.0, fecha: "2026-05-08", categoria: "Cobranza", facturaId: "F001-00260", origen: "yape-negocio" },
+  { id: "m4", tipo: "egreso", concepto: "Luz y agua", monto: 350.0, fecha: "2026-05-10", categoria: "Servicios" },
+  { id: "m5", tipo: "ingreso", concepto: "Cobro factura F001-00275", monto: 2300.0, fecha: "2026-05-14", categoria: "Cobranza", facturaId: "F001-00275", origen: "yape-negocio" },
+  { id: "m6", tipo: "egreso", concepto: "Planilla de personal", monto: 2500.0, fecha: "2026-05-15", categoria: "Planilla" },
+  { id: "m7", tipo: "ingreso", concepto: "Venta al contado en mostrador", monto: 520.0, fecha: "2026-05-20", categoria: "Venta", origen: "otro" },
 ];
 
 export function getCliente(id: string): Cliente | undefined {

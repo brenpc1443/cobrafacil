@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useStore } from "@/lib/store";
 import { resumenClientes, soles } from "@/lib/calc";
 
 export default function CuentasPage() {
-  const filas = resumenClientes();
+  const { clientes, facturas, negocio } = useStore();
+  const filas = resumenClientes(clientes, facturas, negocio.hoy);
   const totalGeneral = filas.reduce((s, r) => s + r.totalPendiente, 0);
 
   function badgeAtraso(dias: number) {
@@ -17,45 +21,59 @@ export default function CuentasPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Cuentas por cobrar</h1>
-          <p className="mt-1 text-sm text-slate-500">{filas.length} clientes te deben en total {soles(totalGeneral)}.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {filas.length} cliente(s) te deben en total {soles(totalGeneral)}.
+          </p>
         </div>
+        <Link
+          href="/clientes"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+        >
+          + Nueva deuda / cliente
+        </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-5 py-3">Cliente</th>
-              <th className="px-5 py-3">Distrito</th>
-              <th className="px-5 py-3 text-center">Facturas</th>
-              <th className="px-5 py-3 text-center">Atraso</th>
-              <th className="px-5 py-3 text-right">Monto</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filas.map((r) => (
-              <tr key={r.cliente.id} className="hover:bg-slate-50">
-                <td className="px-5 py-3">
-                  <div className="font-medium text-slate-800">{r.cliente.razonSocial}</div>
-                  <div className="text-xs text-slate-400">RUC {r.cliente.ruc}</div>
-                </td>
-                <td className="px-5 py-3 text-slate-600">{r.cliente.distrito}</td>
-                <td className="px-5 py-3 text-center text-slate-600">{r.facturasPendientes}</td>
-                <td className="px-5 py-3 text-center">{badgeAtraso(r.maxAtraso)}</td>
-                <td className={`px-5 py-3 text-right font-semibold ${r.maxAtraso > 0 ? "text-red-600" : "text-slate-700"}`}>
-                  {soles(r.totalPendiente)}
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <Link href={`/clientes/${r.cliente.id}`} className="text-sm font-medium text-brand-600 hover:underline">
-                    Cobrar →
-                  </Link>
-                </td>
+      {filas.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-400">
+          No hay deudas pendientes. Crea un cliente y registra una factura desde la sección <b>Clientes</b>.
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-5 py-3">Cliente</th>
+                <th className="px-5 py-3">Distrito</th>
+                <th className="px-5 py-3 text-center">Facturas</th>
+                <th className="px-5 py-3 text-center">Atraso</th>
+                <th className="px-5 py-3 text-right">Monto</th>
+                <th className="px-5 py-3"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filas.map((r) => (
+                <tr key={r.cliente.id} className="hover:bg-slate-50">
+                  <td className="px-5 py-3">
+                    <div className="font-medium text-slate-800">{r.cliente.razonSocial}</div>
+                    <div className="text-xs text-slate-400">RUC {r.cliente.ruc}</div>
+                  </td>
+                  <td className="px-5 py-3 text-slate-600">{r.cliente.distrito}</td>
+                  <td className="px-5 py-3 text-center text-slate-600">{r.facturasPendientes}</td>
+                  <td className="px-5 py-3 text-center">{badgeAtraso(r.maxAtraso)}</td>
+                  <td className={`px-5 py-3 text-right font-semibold ${r.maxAtraso > 0 ? "text-red-600" : "text-slate-700"}`}>
+                    {soles(r.totalPendiente)}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <Link href={`/clientes/${r.cliente.id}`} className="text-sm font-medium text-brand-600 hover:underline">
+                      Cobrar →
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

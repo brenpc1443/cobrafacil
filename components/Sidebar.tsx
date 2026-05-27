@@ -2,17 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NEGOCIO } from "@/lib/data";
+import { useStore } from "@/lib/store";
 
 const items = [
   { href: "/", label: "Resumen", icon: "📊" },
   { href: "/cuentas", label: "Cuentas por cobrar", icon: "📄" },
+  { href: "/clientes", label: "Clientes", icon: "👥" },
+  { href: "/caja", label: "Caja (ingresos/egresos)", icon: "💰" },
   { href: "/recordatorios", label: "Recordatorios automáticos", icon: "🔔" },
 ];
 
 export default function Sidebar() {
   const path = usePathname();
+  const { negocio, reiniciar } = useStore();
   const activo = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+
+  function onReiniciar() {
+    if (confirm("¿Reiniciar la demo a los datos de ejemplo? Se borrará lo que hayas creado.")) {
+      reiniciar();
+    }
+  }
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -39,8 +48,14 @@ export default function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-100 px-5 py-4 text-xs text-slate-500">
-        <div className="font-semibold text-slate-700">{NEGOCIO.razonSocial}</div>
-        <div>RUC {NEGOCIO.ruc}</div>
+        <div className="font-semibold text-slate-700">{negocio.razonSocial}</div>
+        <div>RUC {negocio.ruc}</div>
+        <button
+          onClick={onReiniciar}
+          className="mt-3 text-xs font-medium text-slate-400 underline-offset-2 hover:text-slate-600 hover:underline"
+        >
+          Reiniciar datos de la demo
+        </button>
       </div>
     </aside>
   );

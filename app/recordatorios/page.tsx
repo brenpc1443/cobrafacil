@@ -1,7 +1,11 @@
+"use client";
+
+import { useStore } from "@/lib/store";
 import { resumenClientes, soles } from "@/lib/calc";
 
 export default function RecordatoriosPage() {
-  const filas = resumenClientes();
+  const { clientes, facturas, negocio } = useStore();
+  const filas = resumenClientes(clientes, facturas, negocio.hoy);
   const conAtraso = filas.filter((r) => r.maxAtraso > 0);
   const porVencer = filas.filter((r) => r.maxAtraso <= 0);
 
@@ -48,26 +52,30 @@ export default function RecordatoriosPage() {
       {/* Cola de envíos */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-900">Próximos envíos programados</h2>
-        <div className="mt-4 space-y-2">
-          {[...conAtraso, ...porVencer].slice(0, 8).map((r) => (
-            <div key={r.cliente.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-slate-800">{r.cliente.razonSocial}</div>
-                <div className="text-xs text-slate-400">
-                  {r.maxAtraso > 0
-                    ? `Vencida hace ${r.maxAtraso} día(s) — se enviará segundo aviso`
-                    : "Por vencer — se enviará aviso amable"}
+        {filas.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-400">No hay nada en cola: ningún cliente tiene deuda pendiente.</p>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {[...conAtraso, ...porVencer].slice(0, 8).map((r) => (
+              <div key={r.cliente.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-slate-800">{r.cliente.razonSocial}</div>
+                  <div className="text-xs text-slate-400">
+                    {r.maxAtraso > 0
+                      ? `Vencida hace ${r.maxAtraso} día(s) — se enviará segundo aviso`
+                      : "Por vencer — se enviará aviso amable"}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-700">{soles(r.totalPendiente)}</span>
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                    💬 en cola
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-slate-700">{soles(r.totalPendiente)}</span>
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                  💬 en cola
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
