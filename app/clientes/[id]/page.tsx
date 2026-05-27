@@ -45,8 +45,6 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
           <AccionesCobro
             linkWa={linkWhatsapp(cliente)}
             mensaje={mensajeWhatsapp(cliente)}
-            total={soles(totalPendiente)}
-            cliente={cliente.contacto}
           />
         </div>
       </div>
